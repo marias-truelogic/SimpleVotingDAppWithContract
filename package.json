@@ -1,0 +1,16 @@
+{
+  "name": "hello-world-voting-dapp",
+  "version": "1.0.0",
+  "description": "A simple voting app",
+  "scripts": {
+    "start": "node app.js",
+    "ganache": "ganache-cli"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ganache-cli": "^6.0.3",
+    "solc": "^0.4.18",
+    "web3": "^0.20.1"
+  }
+}
