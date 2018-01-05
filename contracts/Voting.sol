@@ -40,12 +40,11 @@ contract Voting {
     // It looks through the possible candidates
     // If it finds it, returns true, otherwise false
     function validCandidate(bytes32 candidate) view public returns (bool) {
-        return true;
-        // for (uint i = 0; i < candidateList.length; i++) {
-        //     if (candidateList[i] == candidate) {
-        //         return true;
-        //     }
-        // }
-        // return false;
+        for (uint i = 0; i < candidateList.length; i++) {
+            if (candidateList[i] == candidate) {
+                return true;
+            }
+        }
+        return false;
     }
 }
