@@ -47,4 +47,16 @@ contract Voting {
         }
         return false;
     }
+
+    // Returns the list of all current candidates
+    function getCandidates() public view returns (bytes32[]) {
+        return candidateList;
+    }
+
+    // Appends a candidate to the array
+    function addCandidate(bytes32 candidate) public {
+        // Make sure the new candidate is not already in the array
+        require(validCandidate(candidate) == false);
+        candidateList.push(candidate);
+    }
 }
