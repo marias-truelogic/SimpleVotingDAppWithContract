@@ -1,10 +1,15 @@
+import _ from "lodash";
 import React from "react";
 import ReactDOM from "react-dom";
 import Web3 from 'web3';
 import TruffleContract from 'truffle-contract';
 
+import sakura from '../css/sakura.css';
+
 // This is information about our deployed contract, the address and it's interface
 import VotingABI from '../../build/contracts/Voting.json';
+
+import CandidateTable from './components/CandidateTable';
 
 class Main extends React.Component {
     constructor(props) {
@@ -16,7 +21,7 @@ class Main extends React.Component {
             candidates: [],
         }
 
-        this.retrieveCandidates = this.retrieveCandidates.bind(this);
+        this.syncCandidate = this.syncCandidate.bind(this);
         this.setUpConnection = this.setUpConnection.bind(this);
     }
 
@@ -25,8 +30,10 @@ class Main extends React.Component {
     }
 
     async setUpConnection() {
-        const provider = new Web3.providers.HttpProvider("http://127.0.0.1:7545");
+        console.log(process.env.REACT_APP_RCP_PROVIDER);
+        const provider = new Web3.providers.HttpProvider(process.env.REACT_APP_RCP_PROVIDER);
         const web3 = new Web3(provider);
+        const self = this;
 
         // Loads the contract definition from the deployed json
         const VotingContract = TruffleContract(VotingABI);
@@ -49,20 +56,41 @@ class Main extends React.Component {
         const candidates = await deployedContract.getCandidates();
 
         // Make them user-friendly
-        const parsedCandidates = candidates.map(candidate => web3.utils.toAscii(candidate));
+        Promise.all(candidates.map(async candidate => {
+            return {
+                address: candidate,
+                name: web3.utils.toAscii(candidate),
+                votes: await deployedContract.totalVotesFor(candidate)
+            }
+        })).then(parsedCandidates => {
+            self.setState({ web3, contract: deployedContract, candidates: parsedCandidates });
+        });
+    }
 
-        this.setState({ web3, contract: deployedContract, candidates: parsedCandidates });
+    async syncCandidate(candidateAddress) {
+        const clonedCandidates = _.clone(this.state.candidates);
+
+        const candidateIndex = _.findIndex(clonedCandidates, { address: candidateAddress });
+        const newCandidate = clonedCandidates[candidateIndex];
+
+        newCandidate.votes = await this.state.contract.totalVotesFor(candidateAddress);
+
+        clonedCandidates.splice(candidateIndex, 1, newCandidate);
+
+        this.setState({ candidates: clonedCandidates });
     }
 
     render() {
+        const { candidates, contract } = this.state;
+
         return (
             <div className="main">
                 <div className='row'>
-                    here
-                </div>
-                <div className="divider"></div>
-                <div className='row'>
-                    here 2
+                    <CandidateTable
+                        candidates={candidates}
+                        contract={contract}
+                        syncCandidate={this.syncCandidate}
+                    />
                 </div>
             </div>
         );
